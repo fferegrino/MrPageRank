@@ -8,13 +8,13 @@ import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.lib.input.*;
 
-public class WikiMultiRecordReader extends RecordReader<LongWritable, Text>{
+public class WikiMultiRecordReader extends RecordReader<Text, Text>{
 	private static final byte[] recordSeparator = "\n\n".getBytes();
 	private FSDataInputStream fsin;
 	private long start, end;
 	private boolean stillInChunk = true;
-	private DataOutputBuffer buffer = new DataOutputBuffer();
-	private LongWritable key = new LongWritable();
+	private StringBuffer sb;
+	private Text key = new Text();
 	private Text value = new Text();
 	
 	
@@ -27,6 +27,7 @@ public class WikiMultiRecordReader extends RecordReader<LongWritable, Text>{
 	 * environment (system).
 	 */
 	public void initialize(InputSplit inputSplit, TaskAttemptContext context) throws IOException{
+		sb = new StringBuffer();
 		FileSplit split = (FileSplit) inputSplit;
 		Configuration conf = context.getConfiguration();
 		Path path = split.getPath();
@@ -45,12 +46,14 @@ public class WikiMultiRecordReader extends RecordReader<LongWritable, Text>{
 	private boolean readRecord(boolean withinBlock) throws IOException{
 		int i = 0, b;
 		while(true) {
-			if((b = fsin.read()) == -1) {
+			if((b = fsin.read()) == -1) { // End of file
 				return false;
 			}
+			
 			if(withinBlock) {
-				buffer.write(b);
+				sb.append((char) b);
 			}
+			
 			if(b == recordSeparator[i]) {
 				if(++i == recordSeparator.length) {
 					return fsin.getPos() < end;
@@ -65,18 +68,27 @@ public class WikiMultiRecordReader extends RecordReader<LongWritable, Text>{
 		if(!stillInChunk) {
 			return false;
 		}
+		
 		boolean status = readRecord(true);
-		value = new Text();
-		value.set(buffer.getData(), 0, buffer.getLength());
-		key.set(fsin.getPos());
-		buffer.reset();
+		
+		String[] lines = sb.toString().split("\n");
+		
+		String[] revisionValues = lines[0].split(" ");
+		key.set(revisionValues[3]);
+		
+		String mainLine = lines[3];
+		value.set(mainLine.substring(5));
+
+		// Clear the buffer
+		sb.setLength(0);
+		
 		if(!status) {
 			stillInChunk = false;
 		}
 		return true;		
 	}
 	
-	public LongWritable getCurrentKey() {
+	public Text getCurrentKey() {
 		return key;
 	}
 	
