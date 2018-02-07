@@ -79,8 +79,9 @@ public class WikiMultiRecordReader extends RecordReader<Text, WikiInputValue>{
 		key.set(revisionValues[3]);
 		
 		String mainLine = lines[3];
-		
-		value.setOutlinks(mainLine.substring(5));
+		if(mainLine.length() >5 ) {
+			value.setOutlinks(mainLine.substring(5));
+		}
 		value.setRevisionId(Long.parseLong(revisionValues[2]));
 
 		// Clear the buffer

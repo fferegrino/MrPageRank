@@ -32,20 +32,10 @@ public class InputFormatTest {
 
 		reader.initialize(split, context);
 		
-		reader.nextKeyValue();
-		printCurrent(reader);
-		reader.nextKeyValue();
-		printCurrent(reader);
-		reader.nextKeyValue();
-		printCurrent(reader);
-		reader.nextKeyValue();
-		printCurrent(reader);
-		reader.nextKeyValue();
-		printCurrent(reader);
-		reader.nextKeyValue();
-		printCurrent(reader);
-		reader.nextKeyValue();
-		printCurrent(reader);
+		
+		while(reader.nextKeyValue()) {
+			printCurrent(reader);
+		}
 		
 	}
 	

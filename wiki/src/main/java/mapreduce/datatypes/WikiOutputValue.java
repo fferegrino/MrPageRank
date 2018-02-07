@@ -8,12 +8,12 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 
-public class WikiInputValue implements Writable {
+public class WikiOutputValue implements Writable {
 	
 	private Text outlinks;
 	private LongWritable revisionId;
 	
-	public WikiInputValue()
+	public WikiOutputValue()
 	{
 		outlinks = new Text();
 		revisionId = new LongWritable();
@@ -28,7 +28,7 @@ public class WikiInputValue implements Writable {
 	@Override
 	public void write(DataOutput out) throws IOException {
 		outlinks.write(out);
-		revisionId.write(out);
+		outlinks.write(out);
 	}
 
 	public long getRevisionId() {
