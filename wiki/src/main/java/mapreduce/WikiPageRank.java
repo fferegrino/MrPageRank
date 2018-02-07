@@ -23,7 +23,10 @@ public class WikiPageRank extends Configured implements Tool{
 	}
 	
 	public int run(String[] args) throws Exception{
-		Job job = Job.getInstance(getConf());
+		Configuration conf = getConf();
+		conf.set("mapreduce.map.java.opts","-Xmx1843M -Dfile.encoding=UTF-8");
+		Job job = Job.getInstance(conf);
+		
 		
 		job.setJobName("Mighty-WikiPageRank(" + args[0] + ")");
 		job.setJarByClass(getClass());

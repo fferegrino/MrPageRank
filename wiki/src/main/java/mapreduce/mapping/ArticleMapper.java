@@ -6,12 +6,13 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
+
 import mapreduce.datatypes.WikiInputValue;
 
 public class ArticleMapper extends Mapper<Text, WikiInputValue, Text, WikiInputValue>  {
 	
-	static enum Counters {
-		WIKI_ARTICLES
+	static enum MapperCounters {
+		TOTAL_WIKI_ARTICLES
 	}
 	
 	@Override
@@ -21,7 +22,7 @@ public class ArticleMapper extends Mapper<Text, WikiInputValue, Text, WikiInputV
 
 		context.write(key, value);
 
-		context.getCounter(Counters.WIKI_ARTICLES).increment(1);
+		context.getCounter(MapperCounters.TOTAL_WIKI_ARTICLES).increment(1);
 	}
 
 }

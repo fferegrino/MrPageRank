@@ -30,6 +30,11 @@ public class WikiInputValue implements Writable {
 		outlinks.write(out);
 		revisionId.write(out);
 	}
+	
+	@Override
+	public String toString() {
+		return revisionId + " " + outlinks;
+	}
 
 	public long getRevisionId() {
 		return revisionId.get();
