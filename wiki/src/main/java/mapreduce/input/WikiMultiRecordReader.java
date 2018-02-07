@@ -81,6 +81,7 @@ public class WikiMultiRecordReader extends RecordReader<Text, WikiInputValue>{
 		String mainLine = lines[3];
 		if(mainLine.length() >5 ) {
 			String [] outlinks = mainLine.substring(5).split("\\s");
+			value.setOutlinksNumber(outlinks.length);
 			value.setOutlinks(String.join(" ", outlinks));
 		}
 		value.setRevisionId(Long.parseLong(revisionValues[2]));

@@ -6,11 +6,12 @@ import java.util.Iterator;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 
+import mapreduce.datatypes.WikiInOutPageRankValue;
 import mapreduce.datatypes.WikiInputValue;
 
 
-public class ArticleReducer  extends Reducer<Text, WikiInputValue, Text, WikiInputValue> {
-	private WikiInputValue _value = new WikiInputValue();
+public class ArticleReducer  extends Reducer<Text, WikiInputValue, Text, WikiInOutPageRankValue> {
+	private WikiInOutPageRankValue outputValue = new WikiInOutPageRankValue();
 	
 
 	static enum ReducerCounters {
@@ -20,9 +21,10 @@ public class ArticleReducer  extends Reducer<Text, WikiInputValue, Text, WikiInp
 	
 	@Override
 	protected void reduce(Text inKey, Iterable<WikiInputValue> inValues,
-			Reducer<Text, WikiInputValue, Text, WikiInputValue>.Context context) throws IOException, InterruptedException {
+			Reducer<Text, WikiInputValue, Text, WikiInOutPageRankValue>.Context context) throws IOException, InterruptedException {
 
 		long latestRevisionId = 0;
+		int outlinksNumber = 0; 
 		String currentOutlinks = null;
 		
 		WikiInputValue value = null;
@@ -34,6 +36,7 @@ public class ArticleReducer  extends Reducer<Text, WikiInputValue, Text, WikiInp
 			
 			if(latestRevisionId < value.getRevisionId())
 			{
+				outlinksNumber = value.getOutlinksNumber();
 				latestRevisionId = value.getRevisionId();
 				currentOutlinks = value.getOutlinks();
 			}
@@ -44,9 +47,12 @@ public class ArticleReducer  extends Reducer<Text, WikiInputValue, Text, WikiInp
 		
 		if(currentOutlinks == null)
 			currentOutlinks = "";
-		_value.setOutlinks(currentOutlinks);
-		_value.setRevisionId(latestRevisionId);
-		context.write(inKey, _value);
+		
+		outputValue.setOutlinks(currentOutlinks); 
+		outputValue.setPageRank(1); 
+		outputValue.setOutlinksNumber(outlinksNumber);
+		
+		context.write(inKey, outputValue);
 		
 	}
 
