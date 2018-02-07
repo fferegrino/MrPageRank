@@ -5,6 +5,8 @@ import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.lib.output.*;
 import org.apache.hadoop.util.*;
 
+import mapreduce.input.WikiInputFormat;
+
 public class WikiPageRank extends Configured implements Tool{
 
 	/**

@@ -12,8 +12,9 @@ import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
 import org.apache.hadoop.util.ReflectionUtils;
 
-import mapreduce.WikiInputFormat;
-import mapreduce.WikiMultiRecordReader;
+import mapreduce.datatypes.WikiInputValue;
+import mapreduce.input.WikiInputFormat;
+import mapreduce.input.WikiMultiRecordReader;
 
 public class InputFormatTest {
 	
@@ -50,9 +51,10 @@ public class InputFormatTest {
 	
 	public static void printCurrent(WikiMultiRecordReader wmrr) {
 		String key = wmrr.getCurrentKey().toString();
-		String val = wmrr.getCurrentValue().toString();
 		
-		System.out.println(key + ": " + val);
+		WikiInputValue val = wmrr.getCurrentValue();
+		
+		System.out.println(key + ": " + val.getRevisionId() + " - " + val.getOutlinks());
 	}
 
 }

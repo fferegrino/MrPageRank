@@ -1,4 +1,4 @@
-package mapreduce;
+package mapreduce.input;
 
 import java.io.*;
 
@@ -8,14 +8,16 @@ import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.lib.input.*;
 
-public class WikiMultiRecordReader extends RecordReader<Text, Text>{
+import mapreduce.datatypes.WikiInputValue;
+
+public class WikiMultiRecordReader extends RecordReader<Text, WikiInputValue>{
 	private static final byte[] recordSeparator = "\n\n".getBytes();
 	private FSDataInputStream fsin;
 	private long start, end;
 	private boolean stillInChunk = true;
 	private StringBuffer sb;
 	private Text key = new Text();
-	private Text value = new Text();
+	private WikiInputValue value = new WikiInputValue();
 	
 	
 	/** 
@@ -77,7 +79,9 @@ public class WikiMultiRecordReader extends RecordReader<Text, Text>{
 		key.set(revisionValues[3]);
 		
 		String mainLine = lines[3];
-		value.set(mainLine.substring(5));
+		
+		value.setOutlinks(mainLine.substring(5));
+		value.setRevisionId(Long.parseLong(revisionValues[2]));
 
 		// Clear the buffer
 		sb.setLength(0);
@@ -92,7 +96,7 @@ public class WikiMultiRecordReader extends RecordReader<Text, Text>{
 		return key;
 	}
 	
-	public Text getCurrentValue() {
+	public WikiInputValue getCurrentValue() {
 		return value;
 	}
 	
