@@ -1,17 +1,18 @@
 package mapreduce;
 
 import org.apache.hadoop.conf.*;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.Text;
+import org.apache.hadoop.fs.*;
+import org.apache.hadoop.hdfs.*;
+import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapreduce.*;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.*;
 import org.apache.hadoop.mapreduce.lib.output.*;
 import org.apache.hadoop.util.*;
 
-import mapreduce.datatypes.WikiInputValue;
-import mapreduce.input.WikiInputFormat;
-import mapreduce.mapping.ArticleMapper;
-import mapreduce.reducing.ArticleReducer;
+import mapreduce.datatypes.*;
+import mapreduce.input.*;
+import mapreduce.mapping.*;
+import mapreduce.reducing.*;
 
 public class WikiPageRank extends Configured implements Tool{
 
@@ -23,30 +24,56 @@ public class WikiPageRank extends Configured implements Tool{
 	}
 	
 	public int run(String[] args) throws Exception{
+		DistributedFileSystem dfs = new DistributedFileSystem();
 		Configuration conf = getConf();
-		conf.set("mapreduce.map.java.opts","-Xmx1843M -Dfile.encoding=UTF-8");
-		Job job = Job.getInstance(conf);
+		conf.set("mapreduce.map.java.opts","-Xmx1843M");
+		Job job1 = Job.getInstance(conf);
 		
+		Path interPath = new Path("interCleansing");
 		
-		job.setJobName("Mighty-WikiPageRank(" + args[0] + ")");
-		job.setJarByClass(getClass());
+		FileInputFormat.setInputPaths(job1, new Path(args[0]));
+		if (dfs.exists(interPath)) {
+			dfs.delete(interPath, true);
+		}
+		FileOutputFormat.setOutputPath(job1, interPath);
 		
-		job.setInputFormatClass(WikiInputFormat.class);
-		job.setOutputFormatClass(TextOutputFormat.class);
+		job1.setJobName("Mighty-WikiPageRank_1(" + args[0] + ")");
+		job1.setJarByClass(getClass());
+		
+		job1.setInputFormatClass(WikiInputFormat.class);
+		job1.setOutputFormatClass(TextOutputFormat.class);
 
 		// Mapping configuration
-		job.setMapperClass(ArticleMapper.class);
-		job.setMapOutputKeyClass(Text.class);
-		job.setMapOutputValueClass(WikiInputValue.class);
+		job1.setMapperClass(ArticleMapper.class);
+		job1.setMapOutputKeyClass(Text.class);
+		job1.setMapOutputValueClass(WikiInputValue.class);
 		
 		// Reducer configuration
-		job.setReducerClass(ArticleReducer.class);
+		job1.setReducerClass(ArticleReducer.class);
+		// wait for completion
+		job1.waitForCompletion(true);
 		
-
-		FileInputFormat.setInputPaths(job, new Path(args[0]));
-		FileOutputFormat.setOutputPath(job, new Path(args[1]));
+		Job job2 = Job.getInstance(conf);
+		FileInputFormat.setInputPaths(job2, interPath);
+		FileOutputFormat.setOutputPath(job2, new Path(args[1]));
 		
-		return job.waitForCompletion(true) ? 0 : 1;
+		job2.setJobName("Mighty-WikiPageRank_2(" + args[1] + ")");
+		job2.setJarByClass(getClass());
+		
+		job2.setInputFormatClass(TextInputFormat.class);
+		job2.setOutputFormatClass(TextOutputFormat.class);
+		
+		// Mapping configuration
+		job2.setMapperClass(PageRankMapper.class);
+		job2.setMapOutputKeyClass(Text.class);
+		job2.setMapOutputValueClass(WikiIntermediatePageRankValue.class);
+		
+		// Reducer configuration
+		job2.setReducerClass(PageRankReducer.class);
+		
+		dfs.close();
+		// wait for completion
+		return (job2.waitForCompletion(true) ? 0 : 1);
 	}
 
 }
