@@ -1,5 +1,7 @@
 package mapreduce;
 
+import java.util.ArrayList;
+
 import org.apache.hadoop.conf.*;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.hdfs.*;
@@ -23,56 +25,91 @@ public class WikiPageRank extends Configured implements Tool{
 		System.exit(ToolRunner.run(new WikiPageRank(), args));
 	}
 	
+	@Override
 	public int run(String[] args) throws Exception{
 		Configuration conf = getConf();
 		conf.set("mapreduce.map.java.opts","-Xmx1843M");
+		
+		String initialInputPath = args[0];
+		String finalOutputPath = args[1];
+		int bracket = finalOutputPath.lastIndexOf("/");
+		String intermediateFolder = finalOutputPath.substring(0, bracket) + "/";
+		int numLoops = 5;
+		if( args.length > 2) {
+			numLoops = Integer.parseInt(args[2]);
+		}
 
-		Job job1 = Job.getInstance(conf);
+		Job cleaningJob = Job.getInstance(conf);		
+		Path interPath = new Path(intermediateFolder + "inter0");
 		
-		Path interPath = new Path("interCleansing");
+		DistributedFileSystem dfs = new DistributedFileSystem();
+		FileInputFormat.setInputPaths(cleaningJob, new Path(initialInputPath));
+		FileOutputFormat.setOutputPath(cleaningJob, interPath);
 		
-		FileInputFormat.setInputPaths(job1, new Path(args[0]));
-		/*if (dfs.exists(interPath)) {
-			dfs.delete(interPath, true);
-		}*/
-		FileOutputFormat.setOutputPath(job1, interPath);
+		cleaningJob.setJobName("Mighty-WikiPageRank_1(" + args[0] + ")");
+		cleaningJob.setJarByClass(getClass());
 		
-		job1.setJobName("Mighty-WikiPageRank_1(" + args[0] + ")");
-		job1.setJarByClass(getClass());
-		
-		job1.setInputFormatClass(WikiInputFormat.class);
-		job1.setOutputFormatClass(TextOutputFormat.class);
+		cleaningJob.setInputFormatClass(WikiInputFormat.class);
+		cleaningJob.setOutputFormatClass(TextOutputFormat.class);
 
 		// Mapping configuration
-		job1.setMapperClass(ArticleMapper.class);
-		job1.setMapOutputKeyClass(Text.class);
-		job1.setMapOutputValueClass(WikiInputValue.class);
+		cleaningJob.setMapperClass(ArticleMapper.class);
+		cleaningJob.setMapOutputKeyClass(Text.class);
+		cleaningJob.setMapOutputValueClass(WikiInputValue.class);
 		
 		// Reducer configuration
-		job1.setReducerClass(ArticleReducer.class);
+		cleaningJob.setReducerClass(ArticleReducer.class);
 		// wait for completion
-		job1.waitForCompletion(true);
+		cleaningJob.waitForCompletion(true);
+
+		Path previousPath = interPath;
 		
-		Job job2 = Job.getInstance(conf);
-		FileInputFormat.setInputPaths(job2, interPath);
-		FileOutputFormat.setOutputPath(job2, new Path(args[1]));
-		
-		job2.setJobName("Mighty-WikiPageRank_2(" + args[1] + ")");
-		job2.setJarByClass(getClass());
-		
-		job2.setInputFormatClass(TextInputFormat.class);
-		job2.setOutputFormatClass(TextOutputFormat.class);
-		
-		// Mapping configuration
-		job2.setMapperClass(PageRankMapper.class);
-		job2.setMapOutputKeyClass(Text.class);
-		job2.setMapOutputValueClass(WikiIntermediatePageRankValue.class);
-		
-		// Reducer configuration
-		job2.setReducerClass(PageRankReducer.class);
-		
-		// wait for completion
-		return (job2.waitForCompletion(true) ? 0 : 1);
+		boolean succeeded = false;
+		for(int currentLoop = 1; currentLoop < numLoops +1; currentLoop++) {
+			Path nextPath = null;
+			
+			Job pageRankJob = Job.getInstance(conf);
+
+			pageRankJob.setJarByClass(getClass());
+			pageRankJob.setJobName("Mighty-WikiPageRank_2( Loop: "+ currentLoop +" )");
+			
+			// Mapping configuration
+			pageRankJob.setMapperClass(PageRankMapper.class);
+			pageRankJob.setMapOutputKeyClass(Text.class);
+			pageRankJob.setMapOutputValueClass(WikiIntermediatePageRankValue.class);
+			
+			// Reducer configuration
+			pageRankJob.setReducerClass(PageRankReducer.class);
+			
+			if (currentLoop == numLoops) {
+				nextPath = new Path(finalOutputPath);
+			}
+			else {
+				nextPath = new Path(intermediateFolder + "inter" + currentLoop );
+			}
+
+			FileInputFormat.setInputPaths(pageRankJob, previousPath);
+			FileOutputFormat.setOutputPath(pageRankJob, nextPath);
+			
+			pageRankJob.setInputFormatClass(TextInputFormat.class);
+			// TODO: Cambiar salida en la última corrida :D
+			pageRankJob.setOutputFormatClass(TextOutputFormat.class);
+			
+			succeeded = pageRankJob.waitForCompletion(true);
+			
+			// TODO: Eliminar carpeta anterior
+			/*
+			if (dfs.exists(previousPath)) {
+				dfs.delete(previousPath, true);
+			}
+			*/
+			previousPath = nextPath;
+			if (!succeeded) {
+				break;
+			}
+		}
+
+		return (succeeded ? 0 : 1);
 	}
 
 }
