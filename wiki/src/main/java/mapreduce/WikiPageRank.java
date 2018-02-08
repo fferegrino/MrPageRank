@@ -24,17 +24,17 @@ public class WikiPageRank extends Configured implements Tool{
 	}
 	
 	public int run(String[] args) throws Exception{
-		DistributedFileSystem dfs = new DistributedFileSystem();
 		Configuration conf = getConf();
 		conf.set("mapreduce.map.java.opts","-Xmx1843M");
+
 		Job job1 = Job.getInstance(conf);
 		
 		Path interPath = new Path("interCleansing");
 		
 		FileInputFormat.setInputPaths(job1, new Path(args[0]));
-		if (dfs.exists(interPath)) {
+		/*if (dfs.exists(interPath)) {
 			dfs.delete(interPath, true);
-		}
+		}*/
 		FileOutputFormat.setOutputPath(job1, interPath);
 		
 		job1.setJobName("Mighty-WikiPageRank_1(" + args[0] + ")");
@@ -71,7 +71,6 @@ public class WikiPageRank extends Configured implements Tool{
 		// Reducer configuration
 		job2.setReducerClass(PageRankReducer.class);
 		
-		dfs.close();
 		// wait for completion
 		return (job2.waitForCompletion(true) ? 0 : 1);
 	}
