@@ -12,10 +12,10 @@ import org.apache.hadoop.io.Writable;
 
 public class WikiIntermediatePageRankValue implements Writable  {
 	
-	private FloatWritable pageRank;
-	private IntWritable parentOutlinksNumber;
-	private Text parent;
-	private Text outlinks;
+	private FloatWritable pageRank = new FloatWritable();
+	private IntWritable parentOutlinksNumber = new IntWritable();
+	private Text parent = new Text();
+	private Text outlinks = new Text();
 
 	@Override
 	public void readFields(DataInput in) throws IOException {
@@ -62,7 +62,7 @@ public class WikiIntermediatePageRankValue implements Writable  {
 	}
 
 	public void setOutlinks(String outlinks) {
-		this.outlinks = new Text( outlinks);
+		this.outlinks = new Text(outlinks);
 	}
 
 }
