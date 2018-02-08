@@ -2,28 +2,33 @@ package mapreduce.mapping;
 
 import java.io.IOException;
 
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
-import mapreduce.datatypes.WikiInOutPageRankValue;
-import mapreduce.datatypes.WikiInputValue;
 import mapreduce.datatypes.WikiIntermediatePageRankValue;
 
-public class PageRankMapper extends Mapper<Text, WikiInOutPageRankValue, Text, WikiIntermediatePageRankValue> {
+public class PageRankMapper extends Mapper<LongWritable, Text, Text, WikiIntermediatePageRankValue> {
 	
 	@Override
-	protected void map(Text key, WikiInOutPageRankValue parentValue,
-			Mapper<Text, WikiInOutPageRankValue, Text, WikiIntermediatePageRankValue>.Context context)
+	protected void map(LongWritable key, Text line,
+			Mapper<LongWritable, Text, Text, WikiIntermediatePageRankValue>.Context context)
 			throws IOException, InterruptedException {
 		
-		String parent = key.toString();
+		// En parent value viene toda la línea en este formato: parent\tPR|#outlinks|out1 out2 out3
+		String[] split = line.toString().split("\t"); 
 		
-		float parentPageRank = parentValue.getPageRank();
-		String [] parentOutlinks = parentValue.getOutlinks().split(" ");
-		int parentNumberOfOutlinks = parentValue.getOutlinksNumber();
+		String parent = split[0].trim();
+		
+		String[]values = split[1].split("\\|");
+		
+		float parentPageRank = Float.parseFloat(values[0]);
+		int parentNumberOfOutlinks = Integer.parseInt(values[1]);
+		String [] parentOutlinks = values[2].split(" ");
 		
 		WikiIntermediatePageRankValue intermediateValue;
 		Text intermediateKey;
+
 		for(int i = 0; i < parentNumberOfOutlinks; i++)
 		{
 			String currentOutlink = parentOutlinks[i];
@@ -39,14 +44,13 @@ public class PageRankMapper extends Mapper<Text, WikiInOutPageRankValue, Text, W
 			context.write(intermediateKey, intermediateValue);
 		}
 		
-		
 		// Send again the parent with the list of outlinks:
 		intermediateKey = new Text(parent);
 		
 		intermediateValue = new WikiIntermediatePageRankValue();
 		intermediateValue.setPageRank(parentPageRank);
 		intermediateValue.setParent(parent);
-		intermediateValue.setOutlinks(parentValue.getOutlinks());
+		intermediateValue.setOutlinks(values[2]);
 		intermediateValue.setParentOutlinksNumber(parentNumberOfOutlinks);
 		
 		context.write(intermediateKey, intermediateValue);

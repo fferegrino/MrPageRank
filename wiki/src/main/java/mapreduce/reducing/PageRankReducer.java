@@ -30,7 +30,7 @@ public class PageRankReducer extends Reducer<Text, WikiIntermediatePageRankValue
 		for (Iterator<WikiIntermediatePageRankValue> it = inValues.iterator(); it.hasNext();)
 		{
 			value = it.next();
-			if(value.getParent() == key) {
+			if(value.getParent().equalsIgnoreCase(key)) {
 				outlinks = value.getOutlinks();
 				outlinksNumber = value.getParentOutlinksNumber();
 				continue;
@@ -38,7 +38,7 @@ public class PageRankReducer extends Reducer<Text, WikiIntermediatePageRankValue
 			
 			vote += value.getPageRank() / value.getParentOutlinksNumber();
 		}
-		newPageRank = 1 - d + (d * vote);
+		newPageRank = (1 - d) + (d * vote);
 		
 		Text outKey = new Text(key);
 		WikiInOutPageRankValue outValue = new WikiInOutPageRankValue();
