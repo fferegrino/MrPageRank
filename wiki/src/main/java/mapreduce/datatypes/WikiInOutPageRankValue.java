@@ -55,7 +55,12 @@ public class WikiInOutPageRankValue implements Writable  {
 	}
 
 	public void setOutlinks(String outlinks) {
-		this.outlinks = new Text( outlinks);
+		if(outlinks!=null) {
+			this.outlinks = new Text(outlinks);
+		}
+		else {
+			this.outlinks = new Text("");
+		}
 	}
 
 }
