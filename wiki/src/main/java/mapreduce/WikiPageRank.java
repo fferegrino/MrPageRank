@@ -14,6 +14,7 @@ import org.apache.hadoop.util.*;
 import mapreduce.datatypes.*;
 import mapreduce.input.*;
 import mapreduce.mapping.*;
+import mapreduce.output.PageRankOutputFormat;
 import mapreduce.reducing.*;
 
 public class WikiPageRank extends Configured implements Tool{
@@ -87,10 +88,12 @@ public class WikiPageRank extends Configured implements Tool{
 			// Reducer configuration
 			pageRankJob.setReducerClass(PageRankReducer.class);
 			
-			if (currentLoop == numLoops) {
+			if (currentLoop == numLoops) { // Es la última corrida
+				pageRankJob.setOutputFormatClass(PageRankOutputFormat.class);
 				nextPath = finalOutputPath;
 			}
 			else {
+				pageRankJob.setOutputFormatClass(TextOutputFormat.class);
 				nextPath = new Path(intermediateFolder + "inter" + currentLoop );
 			}
 
@@ -98,8 +101,6 @@ public class WikiPageRank extends Configured implements Tool{
 			FileOutputFormat.setOutputPath(pageRankJob, nextPath);
 			
 			pageRankJob.setInputFormatClass(TextInputFormat.class);
-			// TODO: Cambiar salida en la última corrida :D
-			pageRankJob.setOutputFormatClass(TextOutputFormat.class);
 			
 			succeeded = pageRankJob.waitForCompletion(true);
 
