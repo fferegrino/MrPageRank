@@ -30,10 +30,16 @@ public class WikiPageRank extends Configured implements Tool{
 		Configuration conf = getConf();
 		conf.set("mapreduce.map.java.opts","-Xmx1843M");
 		
-		String initialInputPath = args[0];
-		String finalOutputPath = args[1];
-		int bracket = finalOutputPath.lastIndexOf("/");
-		String intermediateFolder = finalOutputPath.substring(0, bracket) + "/";
+		Path initialInputPath = new Path(args[0]) ;
+		Path finalOutputPath = new Path(args[1]);
+		int bracket = finalOutputPath.toString().lastIndexOf("/");
+		String intermediateFolder = finalOutputPath.toString().substring(0, bracket) + "/";
+		FileSystem fs = initialInputPath.getFileSystem(conf);
+	
+		if (fs.exists(finalOutputPath)) {
+			fs.delete(finalOutputPath, true);
+		}
+		
 		int numLoops = 5;
 		if( args.length > 2) {
 			numLoops = Integer.parseInt(args[2]);
@@ -43,7 +49,7 @@ public class WikiPageRank extends Configured implements Tool{
 		Path interPath = new Path(intermediateFolder + "inter0");
 		
 		DistributedFileSystem dfs = new DistributedFileSystem();
-		FileInputFormat.setInputPaths(cleaningJob, new Path(initialInputPath));
+		FileInputFormat.setInputPaths(cleaningJob, initialInputPath);
 		FileOutputFormat.setOutputPath(cleaningJob, interPath);
 		
 		cleaningJob.setJobName("Mighty-WikiPageRank_1(" + args[0] + ")");
@@ -82,7 +88,7 @@ public class WikiPageRank extends Configured implements Tool{
 			pageRankJob.setReducerClass(PageRankReducer.class);
 			
 			if (currentLoop == numLoops) {
-				nextPath = new Path(finalOutputPath);
+				nextPath = finalOutputPath;
 			}
 			else {
 				nextPath = new Path(intermediateFolder + "inter" + currentLoop );
@@ -96,13 +102,10 @@ public class WikiPageRank extends Configured implements Tool{
 			pageRankJob.setOutputFormatClass(TextOutputFormat.class);
 			
 			succeeded = pageRankJob.waitForCompletion(true);
-			
-			// TODO: Eliminar carpeta anterior
-			/*
-			if (dfs.exists(previousPath)) {
-				dfs.delete(previousPath, true);
+
+			if (fs.exists(previousPath)) {
+				fs.delete(previousPath, true);
 			}
-			*/
 			previousPath = nextPath;
 			if (!succeeded) {
 				break;
