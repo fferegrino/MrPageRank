@@ -12,13 +12,11 @@ import mapreduce.datatypes.WikiInOutPageRankValue;
 public class PageRankRecordWriter extends RecordWriter<Text, WikiInOutPageRankValue> {
 	
 	private DataOutputStream out;
-	static final String separator = "\t";
-
-
+	static final String separator = " ";
+	
 	public PageRankRecordWriter(DataOutputStream out) {
 		this.out = out;
 	}
-	 
 
 	@Override
 	public void write(Text key, WikiInOutPageRankValue value) throws IOException, InterruptedException {

@@ -29,17 +29,15 @@ public class WikiPageRank extends Configured implements Tool{
 	@Override
 	public int run(String[] args) throws Exception{
 		Configuration conf = getConf();
-		conf.set("mapreduce.map.java.opts","-Xmx1843M");
 		
-		Path initialInputPath = new Path(args[0]) ;
-		Path finalOutputPath = new Path(args[1]);
-		int bracket = finalOutputPath.toString().lastIndexOf("/");
-		String intermediateFolder = finalOutputPath.toString().substring(0, bracket) + "/";
-		FileSystem fs = initialInputPath.getFileSystem(conf);
-	
-		if (fs.exists(finalOutputPath)) {
-			fs.delete(finalOutputPath, true);
-		}
+		conf.set("mapreduce.map.java.opts","-Xmx1843M");
+		FileSystem fsys = FileSystem.get(conf);
+		
+		Path input = new Path(args[0]);
+		Path output = new Path(args[1]);
+		Path intermediate = new Path("inter0");
+
+		fsys.delete(output, true);
 		
 		int numLoops = 5;
 		if( args.length > 2) {
@@ -47,11 +45,9 @@ public class WikiPageRank extends Configured implements Tool{
 		}
 
 		Job cleaningJob = Job.getInstance(conf);		
-		Path interPath = new Path(intermediateFolder + "inter0");
 		
-		DistributedFileSystem dfs = new DistributedFileSystem();
-		FileInputFormat.setInputPaths(cleaningJob, initialInputPath);
-		FileOutputFormat.setOutputPath(cleaningJob, interPath);
+		FileInputFormat.setInputPaths(cleaningJob, input);
+		FileOutputFormat.setOutputPath(cleaningJob, intermediate);
 		
 		cleaningJob.setJobName("Mighty-WikiPageRank_1(" + args[0] + ")");
 		cleaningJob.setJarByClass(getClass());
@@ -69,7 +65,7 @@ public class WikiPageRank extends Configured implements Tool{
 		// wait for completion
 		cleaningJob.waitForCompletion(true);
 
-		Path previousPath = interPath;
+		Path previousPath = intermediate;
 		
 		boolean succeeded = false;
 		for(int currentLoop = 1; currentLoop < numLoops +1; currentLoop++) {
@@ -90,11 +86,11 @@ public class WikiPageRank extends Configured implements Tool{
 			
 			if (currentLoop == numLoops) { // Es la última corrida
 				pageRankJob.setOutputFormatClass(PageRankOutputFormat.class);
-				nextPath = finalOutputPath;
+				nextPath = output;
 			}
 			else {
 				pageRankJob.setOutputFormatClass(TextOutputFormat.class);
-				nextPath = new Path(intermediateFolder + "inter" + currentLoop );
+				nextPath = new Path("inter" + currentLoop );
 			}
 
 			FileInputFormat.setInputPaths(pageRankJob, previousPath);
@@ -104,9 +100,8 @@ public class WikiPageRank extends Configured implements Tool{
 			
 			succeeded = pageRankJob.waitForCompletion(true);
 
-			if (fs.exists(previousPath)) {
-				fs.delete(previousPath, true);
-			}
+			fsys.delete(previousPath, true);
+			
 			previousPath = nextPath;
 			if (!succeeded) {
 				break;
