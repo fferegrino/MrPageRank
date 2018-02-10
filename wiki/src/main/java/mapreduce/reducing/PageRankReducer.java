@@ -6,18 +6,12 @@ import java.util.Iterator;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 
-import mapreduce.datatypes.WikiInOutPageRankValue;
-import mapreduce.datatypes.WikiInputValue;
-import mapreduce.datatypes.WikiIntermediatePageRankValue;
-import mapreduce.reducing.ArticleReducer.ReducerCounters;
+import mapreduce.datatypes.*;
+import mapreduce.reducing.ArticleReducer.*;
 
 public class PageRankReducer extends Reducer<Text, WikiIntermediatePageRankValue, Text, WikiInOutPageRankValue>{
 	
 	final float d = 0.85f; 
-	
-	static enum ReducerCounters {
-		REDUCED_RANK_NULL_OUTLINKS
-	}
 	
 	@Override
 	protected void reduce(Text inKey, Iterable<WikiIntermediatePageRankValue> inValues,
@@ -47,7 +41,6 @@ public class PageRankReducer extends Reducer<Text, WikiIntermediatePageRankValue
 		
 		if(outlinks == null) {
 			outlinks = "";
-			context.getCounter(ReducerCounters.REDUCED_RANK_NULL_OUTLINKS).increment(1);
 		}
 		
 		Text outKey = new Text(key);

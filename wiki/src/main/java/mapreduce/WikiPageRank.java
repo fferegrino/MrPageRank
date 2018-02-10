@@ -1,10 +1,7 @@
 package mapreduce;
 
-import java.util.ArrayList;
-
 import org.apache.hadoop.conf.*;
 import org.apache.hadoop.fs.*;
-import org.apache.hadoop.hdfs.*;
 import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.lib.input.*;
@@ -14,7 +11,7 @@ import org.apache.hadoop.util.*;
 import mapreduce.datatypes.*;
 import mapreduce.input.*;
 import mapreduce.mapping.*;
-import mapreduce.output.PageRankOutputFormat;
+import mapreduce.output.*;
 import mapreduce.reducing.*;
 
 public class WikiPageRank extends Configured implements Tool{
@@ -29,8 +26,11 @@ public class WikiPageRank extends Configured implements Tool{
 	@Override
 	public int run(String[] args) throws Exception{
 		Configuration conf = getConf();
+		conf.set("mapreduce.map.java.opts","-Xmx620M");
+		final long DEFAULT_SPLIT_SIZE = 128 * 1024 * 1024;
+		//lower input block size by factor of two.
+		conf.setLong(FileInputFormat.SPLIT_MAXSIZE,conf.getLong(FileInputFormat.SPLIT_MAXSIZE, DEFAULT_SPLIT_SIZE) / 8);
 		
-		conf.set("mapreduce.map.java.opts","-Xmx1843M");
 		FileSystem fsys = FileSystem.get(conf);
 		
 		Path input = new Path(args[0]);
