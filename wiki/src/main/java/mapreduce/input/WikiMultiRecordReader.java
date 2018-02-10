@@ -17,7 +17,7 @@ public class WikiMultiRecordReader extends RecordReader<Text, WikiInputValue>{
 	private boolean stillInChunk = true;
 	private StringBuffer sb;
 	private Text key = new Text();
-	private WikiInputValue value = new WikiInputValue();
+	private WikiInputValue value;
 	
 	
 	/** 
@@ -78,6 +78,7 @@ public class WikiMultiRecordReader extends RecordReader<Text, WikiInputValue>{
 		String[] revisionValues = lines[0].split(" ");
 		key.set(revisionValues[3]);
 		
+		value = new WikiInputValue();
 		String mainLine = lines[3];
 		if(mainLine.length() >5 ) {
 			String [] outlinks = mainLine.substring(5).split("\\s");
