@@ -41,7 +41,7 @@ public class PageRankMapper extends Mapper<LongWritable, Text, Text, WikiInterme
 				intermediateValue.setPageRank(parentPageRank);
 				intermediateValue.setParent(parent);
 				intermediateValue.setParentOutlinksNumber(parentNumberOfOutlinks);
-				intermediateValue.setOutlinks(values[2]); //si se necesitan ;)
+				// No se necesitan, otra vez
 				
 				context.write(intermediateKey, intermediateValue);
 			}

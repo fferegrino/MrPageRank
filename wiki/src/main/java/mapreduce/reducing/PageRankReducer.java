@@ -35,7 +35,7 @@ public class PageRankReducer extends Reducer<Text, WikiIntermediatePageRankValue
 		for (Iterator<WikiIntermediatePageRankValue> it = inValues.iterator(); it.hasNext();)
 		{
 			value = it.next();
-			if(value.getParent().equalsIgnoreCase(key)) {
+			if(value.getParent().equalsIgnoreCase(key) && value.getOutlinks() != null && !value.getOutlinks().equals("")) {
 				outlinks = value.getOutlinks();
 				outlinksNumber = value.getParentOutlinksNumber();
 				continue;
@@ -45,9 +45,10 @@ public class PageRankReducer extends Reducer<Text, WikiIntermediatePageRankValue
 		}
 		newPageRank = (1 - d) + (d * vote);
 		
-		if(outlinks == null)
+		if(outlinks == null) {
+			outlinks = "";
 			context.getCounter(ReducerCounters.REDUCED_RANK_NULL_OUTLINKS).increment(1);
-		
+		}
 		
 		Text outKey = new Text(key);
 		WikiInOutPageRankValue outValue = new WikiInOutPageRankValue();
