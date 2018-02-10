@@ -24,26 +24,29 @@ public class PageRankMapper extends Mapper<LongWritable, Text, Text, WikiInterme
 		
 		float parentPageRank = Float.parseFloat(values[0]);
 		int parentNumberOfOutlinks = Integer.parseInt(values[1]);
-		String [] parentOutlinks = values[2].split(" ");
 		
 		WikiIntermediatePageRankValue intermediateValue;
 		Text intermediateKey;
-
-		for(int i = 0; i < parentNumberOfOutlinks; i++)
-		{
-			String currentOutlink = parentOutlinks[i];
-			
-			intermediateKey = new Text(currentOutlink);
-			
-			intermediateValue = new WikiIntermediatePageRankValue();
-			intermediateValue.setPageRank(parentPageRank);
-			intermediateValue.setParent(parent);
-			intermediateValue.setParentOutlinksNumber(parentNumberOfOutlinks);
-			intermediateValue.setOutlinks(values[2]); //si se necesitan ;)
-			
-			context.write(intermediateKey, intermediateValue);
-		}
 		
+		if(values.length > 2)
+		{
+			String [] parentOutlinks = values[2].split(" ");
+			for(int i = 0; i < parentNumberOfOutlinks; i++)
+			{
+				String currentOutlink = parentOutlinks[i];
+				
+				intermediateKey = new Text(currentOutlink);
+				
+				intermediateValue = new WikiIntermediatePageRankValue();
+				intermediateValue.setPageRank(parentPageRank);
+				intermediateValue.setParent(parent);
+				intermediateValue.setParentOutlinksNumber(parentNumberOfOutlinks);
+				intermediateValue.setOutlinks(values[2]); //si se necesitan ;)
+				
+				context.write(intermediateKey, intermediateValue);
+			}
+			
+		}
 		// Send again the parent with the list of outlinks:
 		intermediateKey = new Text(parent);
 		
