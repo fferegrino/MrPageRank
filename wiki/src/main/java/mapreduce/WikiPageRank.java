@@ -49,7 +49,7 @@ public class WikiPageRank extends Configured implements Tool{
 		FileInputFormat.setInputPaths(cleaningJob, input);
 		FileOutputFormat.setOutputPath(cleaningJob, intermediate);
 		
-		cleaningJob.setJobName("Mighty-WikiPageRank_1(" + args[0] + ")");
+		cleaningJob.setJobName("Mighty-WikiPageRank(Init)");
 		cleaningJob.setJarByClass(getClass());
 		
 		cleaningJob.setInputFormatClass(WikiInputFormat.class);
@@ -74,7 +74,7 @@ public class WikiPageRank extends Configured implements Tool{
 			Job pageRankJob = Job.getInstance(conf);
 
 			pageRankJob.setJarByClass(getClass());
-			pageRankJob.setJobName("Mighty-WikiPageRank_2( Loop: "+ currentLoop +" )");
+			pageRankJob.setJobName("Mighty-WikiPageRank(Loop: "+ currentLoop +")");
 			
 			// Mapping configuration
 			pageRankJob.setMapperClass(PageRankMapper.class);
