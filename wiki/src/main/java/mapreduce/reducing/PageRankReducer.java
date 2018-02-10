@@ -35,6 +35,10 @@ public class PageRankReducer extends Reducer<Text, WikiIntermediatePageRankValue
 				continue;
 			}
 			
+			
+			if(value.getParentOutlinksNumber() == 0){
+				continue;
+			}
 			vote += value.getPageRank() / value.getParentOutlinksNumber();
 		}
 		newPageRank = (1 - d) + (d * vote);
