@@ -1,28 +1,25 @@
 package mapreduce.mapping;
 
-import java.io.IOException;
-
-import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.LongWritable;
+import mapreduce.datatypes.WikiInputValue;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
-import mapreduce.datatypes.WikiInputValue;
+import java.io.IOException;
 
-public class ArticleMapper extends Mapper<Text, WikiInputValue, Text, WikiInputValue>  {
-	
-	static enum MapperCounters {
-		TOTAL_WIKI_ARTICLES
-	}
-	
-	@Override
-	protected void map(Text key, WikiInputValue value,
-			Mapper<Text, WikiInputValue, Text, WikiInputValue>.Context context)
-			throws IOException, InterruptedException {
+public class ArticleMapper extends Mapper<Text, WikiInputValue, Text, WikiInputValue> {
 
-		context.write(key, value);
+    @Override
+    protected void map(Text key, WikiInputValue value,
+                       Mapper<Text, WikiInputValue, Text, WikiInputValue>.Context context)
+            throws IOException, InterruptedException {
 
-		context.getCounter(MapperCounters.TOTAL_WIKI_ARTICLES).increment(1);
-	}
+        context.write(key, value);
+
+        context.getCounter(MapperCounters.TOTAL_WIKI_ARTICLES).increment(1);
+    }
+
+    static enum MapperCounters {
+        TOTAL_WIKI_ARTICLES
+    }
 
 }

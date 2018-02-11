@@ -1,61 +1,61 @@
 package mapreduce.datatypes;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-
 import org.apache.hadoop.io.FloatWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 
-public class WikiInOutPageRankValue implements Writable  {
-	
-	private FloatWritable pageRank;
-	private IntWritable outlinksNumber;
-	private Text outlinks;
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 
-	@Override
-	public void readFields(DataInput in) throws IOException {
-		pageRank.readFields(in);
-		outlinksNumber.readFields(in);
-		outlinks.readFields(in);
-	}
+public class WikiInOutPageRankValue implements Writable {
 
-	@Override
-	public void write(DataOutput out) throws IOException {
-		pageRank.write(out);
-		outlinksNumber.write(out);
-		outlinks.write(out);
-	}
-	
-	@Override
-	public String toString() {
-		return getPageRank() +  "|" + getOutlinksNumber() + "|" + getOutlinks();
-	}
+    private FloatWritable pageRank;
+    private IntWritable outlinksNumber;
+    private Text outlinks;
 
-	public float getPageRank() {
-		return pageRank.get();
-	}
+    @Override
+    public void readFields(DataInput in) throws IOException {
+        pageRank.readFields(in);
+        outlinksNumber.readFields(in);
+        outlinks.readFields(in);
+    }
 
-	public void setPageRank(float pageRank) {
-		this.pageRank = new FloatWritable(pageRank);
-	}
+    @Override
+    public void write(DataOutput out) throws IOException {
+        pageRank.write(out);
+        outlinksNumber.write(out);
+        outlinks.write(out);
+    }
 
-	public int getOutlinksNumber() {
-		return outlinksNumber.get();
-	}
+    @Override
+    public String toString() {
+        return getPageRank() + "|" + getOutlinksNumber() + "|" + getOutlinks();
+    }
 
-	public void setOutlinksNumber(int outlinksNumber) {
-		this.outlinksNumber = new IntWritable(outlinksNumber);
-	}
+    public float getPageRank() {
+        return pageRank.get();
+    }
 
-	public String getOutlinks() {
-		return outlinks.toString();
-	}
+    public void setPageRank(float pageRank) {
+        this.pageRank = new FloatWritable(pageRank);
+    }
 
-	public void setOutlinks(String outlinks) {
-		this.outlinks = new Text(outlinks);
-	}
+    public int getOutlinksNumber() {
+        return outlinksNumber.get();
+    }
+
+    public void setOutlinksNumber(int outlinksNumber) {
+        this.outlinksNumber = new IntWritable(outlinksNumber);
+    }
+
+    public String getOutlinks() {
+        return outlinks.toString();
+    }
+
+    public void setOutlinks(String outlinks) {
+        this.outlinks = new Text(outlinks);
+    }
 
 }
