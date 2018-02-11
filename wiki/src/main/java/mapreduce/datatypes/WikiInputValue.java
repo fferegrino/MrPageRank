@@ -9,6 +9,12 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+/**
+ * Represents the input of the cleaning stage for the PageRank job
+ *
+ * @author 2338066f ANTONIO FEREGRINO BOLANOS
+ * @author 2338067g HOMERO GARCIA MERINO
+ */
 public class WikiInputValue implements Writable {
 
     private Text outlinks;

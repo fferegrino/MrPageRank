@@ -9,6 +9,13 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+/**
+ * Represents the output value of the PageRank reducer module, and, at the same time
+ * it is used as the input for the Mapper of the same PageRank job
+ *
+ * @author 2338066f ANTONIO FEREGRINO BOLANOS
+ * @author 2338067g HOMERO GARCIA MERINO
+ */
 public class WikiInOutPageRankValue implements Writable {
 
     private FloatWritable pageRank;
@@ -34,26 +41,51 @@ public class WikiInOutPageRankValue implements Writable {
         return getPageRank() + "|" + getOutlinksNumber() + "|" + getOutlinks();
     }
 
+    /**
+     * @return the page rank for the page specified by the key associated to this value
+     */
     public float getPageRank() {
         return pageRank.get();
     }
 
+    /**
+     * Set the page rank for the page specified by the key associated to this value
+     *
+     * @param pageRank
+     */
     public void setPageRank(float pageRank) {
         this.pageRank = new FloatWritable(pageRank);
     }
 
+    /**
+     * @return get the number of outlinks that the key associated to this value has
+     */
     public int getOutlinksNumber() {
         return outlinksNumber.get();
     }
 
+    /**
+     * Set the number of outlinks that the page specified by the key associated to this value has
+     *
+     * @param outlinksNumber
+     */
     public void setOutlinksNumber(int outlinksNumber) {
         this.outlinksNumber = new IntWritable(outlinksNumber);
     }
 
+    /**
+     * @return all the outlinks that the page specified by the key associated to this value has,
+     * the outlinks are presented as strings separated by a blank space
+     */
     public String getOutlinks() {
         return outlinks.toString();
     }
 
+    /**
+     * Set the outlinks that the page specified by the key associated to this value has
+     *
+     * @param outlinks
+     */
     public void setOutlinks(String outlinks) {
         this.outlinks = new Text(outlinks);
     }

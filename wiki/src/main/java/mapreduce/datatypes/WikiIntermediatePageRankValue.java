@@ -9,6 +9,12 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+/**
+ * Represents the value that is used to link the Mapper and Reducer modules of the PageRank job
+ *
+ * @author 2338066f ANTONIO FEREGRINO BOLANOS
+ * @author 2338067g HOMERO GARCIA MERINO
+ */
 public class WikiIntermediatePageRankValue implements Writable {
 
     private FloatWritable pageRank = new FloatWritable();
