@@ -47,6 +47,6 @@ Then, for each `outlink` in the list of `outlinks` the mapper emits a key-value 
  - an `IntWritable` that specifies the number of outlines that the `article_title` has
  - a `Text` that contains the "parent" of `outlink`, here we define parent as the article that points to it, in other words `article_title`. 
 
-Finally, once all the values for the outlines have been emitted,  a final key-value pair is emitted this one has `article_title` as the key, and a `WikiIntermediatePageRankValue` with his "parent" set to itself, as well as an additional property of type `Text` that will contain the list of `outlinks`. This last value will help us to reconstruct the original input of the mapper in order to re-use the output of this job as its input.
+Finally, once all the values for the outlines have been emitted,  a final key-value pair is emitted, this one has `article_title` as the key, and a `WikiIntermediatePageRankValue` with his "parent" set to itself, as well as an additional property of type `Text` that will contain the list of `outlinks`. This last value will help us to reconstruct the original input of the mapper in order to re-use the output of this job as its input.
 
 As specified by the mapper, the reducer takes a list of...
