@@ -47,7 +47,6 @@ public class ArticleReducer extends Reducer<Text, WikiInputValue, Text, WikiInOu
 
     }
 
-
     static enum ReducerCounters {
         REDUCED_WIKI_ARTICLES
     }
