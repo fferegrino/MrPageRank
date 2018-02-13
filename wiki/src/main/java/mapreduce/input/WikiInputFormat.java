@@ -13,8 +13,8 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
  * @author 2338066f ANTONIO FEREGRINO BOLANOS
  * @author 2338067g HOMERO GARCIA MERINO
  */
-public class WikiInputFormat extends FileInputFormat<Text, WikiInputValue> {
-    public RecordReader<Text, WikiInputValue> createRecordReader(InputSplit split, TaskAttemptContext context) {
+public class WikiInputFormat extends FileInputFormat<Text, Text> {
+    public RecordReader<Text, Text> createRecordReader(InputSplit split, TaskAttemptContext context) {
         return new WikiMultiRecordReader();
     }
 }
