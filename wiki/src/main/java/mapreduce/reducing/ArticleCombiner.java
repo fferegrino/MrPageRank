@@ -55,8 +55,6 @@ public class ArticleCombiner extends Reducer<Text, WikiInputValue, Text, WikiInp
 				continue;
 
 			if (latestRevisionId < value.getRevisionId()) {
-				LOG.info("Changing " + inKey.toString() + " revision from " + latestRevisionId + " to "
-						+ value.getRevisionId());
 				latestRevisionId = value.getRevisionId();
 				outlinksNumber = value.getOutlinksNumber();
 				currentOutlinks = value.getOutlinks();
