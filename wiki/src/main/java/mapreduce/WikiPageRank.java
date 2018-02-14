@@ -14,6 +14,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.JobPriority;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
@@ -53,7 +54,10 @@ public class WikiPageRank extends Configured implements Tool {
         // Setting a lower split size to use more containers in the "data gathering and cleansing" phase
         final long DEFAULT_SPLIT_SIZE = 128 * 1024 * 1024;
         // Lower split size by factor of 8, considering cluster's block size is 128M
-        conf.setLong(FileInputFormat.SPLIT_MAXSIZE, conf.getLong(FileInputFormat.SPLIT_MAXSIZE, DEFAULT_SPLIT_SIZE) / 8);
+        conf.setLong(FileInputFormat.SPLIT_MAXSIZE, conf.getLong(FileInputFormat.SPLIT_MAXSIZE, DEFAULT_SPLIT_SIZE) / 4);
+        // Enable Mapping output compression
+        conf.set("mapreduce.map.output.compress", "true");
+        conf.set("mapreduce.map.output.compress.codec", "org.apache.hadoop.io.compress.SnappyCodec");
         
         // Obtain filesystem configuration details from Hadoop's cluster
         FileSystem fsys = FileSystem.get(conf);
@@ -76,9 +80,10 @@ public class WikiPageRank extends Configured implements Tool {
         FileOutputFormat.setOutputPath(cleaningJob, intermediate);
         cleaningJob.setJobName("Mighty-WikiPageRank(init)");
         cleaningJob.setJarByClass(getClass());
+        cleaningJob.setPriority(JobPriority.HIGH);
+        cleaningJob.setNumReduceTasks(80);
         cleaningJob.setInputFormatClass(WikiInputFormat.class);
         cleaningJob.setOutputFormatClass(TextOutputFormat.class);
-
         // Mapping configuration for "data gathering and cleansing" job
         cleaningJob.setMapperClass(ArticleMapper.class);
         cleaningJob.setMapOutputKeyClass(Text.class);
@@ -97,9 +102,10 @@ public class WikiPageRank extends Configured implements Tool {
             Path nextPath = null;
             // Define and configure current "PageRank's calculation" job
             Job pageRankJob = Job.getInstance(conf);
-
             pageRankJob.setJarByClass(getClass());
             pageRankJob.setJobName("Mighty-WikiPageRank(Loop: " + currentLoop + ")");
+            pageRankJob.setPriority(JobPriority.HIGH);
+            pageRankJob.setNumReduceTasks(80);
 
             // Mapping configuration for current "PageRank's calculation" job
             pageRankJob.setMapperClass(PageRankMapper.class);
@@ -116,6 +122,7 @@ public class WikiPageRank extends Configured implements Tool {
             } else { // Intermediate iteration, defines the output format as "article_name page-rank outlinks_number outlinks_list
                 pageRankJob.setOutputFormatClass(TextOutputFormat.class);
                 nextPath = new Path("inter" + currentLoop);
+                //FileOutputFormat.setOutputCompressorClass(pageRankJob, org.apache.hadoop.io.compress.SnappyCodec.class);
             }
 
             FileInputFormat.setInputPaths(pageRankJob, previousPath);
