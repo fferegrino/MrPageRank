@@ -6,6 +6,7 @@ import mapreduce.input.WikiInputFormat;
 import mapreduce.mapping.ArticleMapper;
 import mapreduce.mapping.PageRankMapper;
 import mapreduce.output.PageRankOutputFormat;
+import mapreduce.reducing.ArticleCombiner;
 import mapreduce.reducing.ArticleReducer;
 import mapreduce.reducing.PageRankReducer;
 import org.apache.hadoop.conf.Configuration;
@@ -55,6 +56,7 @@ public class WikiPageRank extends Configured implements Tool {
         //final long DEFAULT_SPLIT_SIZE = 128 * 1024 * 1024;
         // Lower split size by factor of 8, considering cluster's block size is 128M
         //conf.setLong(FileInputFormat.SPLIT_MAXSIZE, conf.getLong(FileInputFormat.SPLIT_MAXSIZE, DEFAULT_SPLIT_SIZE) / 8);
+        
         // Enable Mapping output compression
         conf.set("mapreduce.map.output.compress", "true");
         conf.set("mapreduce.map.output.compress.codec", "org.apache.hadoop.io.compress.SnappyCodec");
@@ -91,6 +93,7 @@ public class WikiPageRank extends Configured implements Tool {
         cleaningJob.setMapOutputValueClass(WikiInputValue.class);
 
         // Reducer configuration for "data gathering and cleansing" job
+        cleaningJob.setCombinerClass(ArticleCombiner.class);
         cleaningJob.setReducerClass(ArticleReducer.class);
         
         // Wait for completion

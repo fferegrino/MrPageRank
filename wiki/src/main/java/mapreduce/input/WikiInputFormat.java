@@ -26,6 +26,6 @@ public class WikiInputFormat extends FileInputFormat<Text, Text> {
      * @param size the maximum split size
      */
     public static void setMaxInputSplitSize(Job job, long size) {
-      job.getConfiguration().setLong(SPLIT_MAXSIZE, job.getConfiguration().getLong(FileInputFormat.SPLIT_MAXSIZE, DEFAULT_SPLIT_SIZE) / 8);
+      job.getConfiguration().setLong(SPLIT_MAXSIZE, job.getConfiguration().getLong(FileInputFormat.SPLIT_MAXSIZE, DEFAULT_SPLIT_SIZE) / 4);
     }
 }
