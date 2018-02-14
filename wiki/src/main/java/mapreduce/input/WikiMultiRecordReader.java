@@ -1,6 +1,5 @@
 package mapreduce.input;
 
-import mapreduce.datatypes.WikiInputValue;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -33,7 +32,6 @@ public class WikiMultiRecordReader extends RecordReader<Text, Text> {
 	/**
 	 * Initialize method that configures node's context for reading an input split
 	 * text file (parsed version of the complete Wikipedia edit history).
-	 * 
 	 * @param inputSplit
 	 *            is a logical chunk of data that points to start and end locations
 	 *            within physical blocks.
@@ -62,7 +60,6 @@ public class WikiMultiRecordReader extends RecordReader<Text, Text> {
 
 	/**
 	 * ReadRecord method for determining the type of the processed block.
-	 * 
 	 * @param withinBlock
 	 *            is a boolean value that determines the type of the processed block
 	 *            (end of block or inner block).
@@ -93,7 +90,6 @@ public class WikiMultiRecordReader extends RecordReader<Text, Text> {
 
 	/**
 	 * NextKeyValueRead method reads the next key, value pair.
-	 * 
 	 * @return true if a key/value pair is read
 	 * @throws IOException
 	 *             if the record reader can not be reached.
@@ -134,7 +130,6 @@ public class WikiMultiRecordReader extends RecordReader<Text, Text> {
 
 	/**
 	 * GetCurrentKey method retrieves the current key of the processed record.
-	 * 
 	 * @return the current key or null if there is no current key.
 	 * @throws IOException
 	 *             if the record reader can not be reached.
@@ -145,7 +140,6 @@ public class WikiMultiRecordReader extends RecordReader<Text, Text> {
 
 	/**
 	 * GetCurrentValue method retrieves the current value of the processed record.
-	 * 
 	 * @return the read record.
 	 * @throws IOException
 	 *             if the record reader can not be reached.
@@ -157,7 +151,6 @@ public class WikiMultiRecordReader extends RecordReader<Text, Text> {
 	/**
 	 * GetProgress method retrieves the current progress of the record reader
 	 * through the data.
-	 * 
 	 * @return a number between 0.0 and 1.0 that is the portion of read data.
 	 * @throws IOException
 	 *             if the record reader can not be reached.
@@ -168,7 +161,6 @@ public class WikiMultiRecordReader extends RecordReader<Text, Text> {
 
 	/**
 	 * Close method terminates the record reader object.
-	 * 
 	 * @throws IOException
 	 *             if the record reader can not be closed.
 	 */
