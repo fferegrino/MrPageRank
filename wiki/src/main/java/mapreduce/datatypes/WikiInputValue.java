@@ -11,12 +11,13 @@ import java.io.IOException;
 
 /**
  * Writable class that defines the input values for the data gathering and cleansing Mapping process.
+ *
  * @author 2338066f ANTONIO FEREGRINO BOLANOS
  * @author 2338067g HOMERO GARCIA MERINO
  */
 public class WikiInputValue implements Writable {
 
-	//Out-links list (by article name)
+    //Out-links list (by article name)
     private Text outlinks;
     //Article revision id
     private LongWritable revisionId;
@@ -34,8 +35,9 @@ public class WikiInputValue implements Writable {
 
     /**
      * ReadFields method for deserializing DataInput fields.
+     *
      * @param in contains selected Wikipedia article's attributes.
-     * @throws IOException if deserializable input data can not be read. 
+     * @throws IOException if deserializable input data can not be read.
      */
     @Override
     public void readFields(DataInput in) throws IOException {
@@ -46,6 +48,7 @@ public class WikiInputValue implements Writable {
 
     /**
      * Write method for serializing DataOutput fields.
+     *
      * @param out stores selected Wikipedia article's attributes.
      * @throws IOException if serializable output data can not be written.
      */
@@ -57,8 +60,9 @@ public class WikiInputValue implements Writable {
     }
 
     /**
-     * String representation for WikiInputValue class: "Revision id" + space delimiter + "out-links 
+     * String representation for WikiInputValue class: "Revision id" + space delimiter + "out-links
      * number of elements" + space delimiter + "out-links elements list".
+     *
      * @return the string description.
      */
     @Override
@@ -68,6 +72,7 @@ public class WikiInputValue implements Writable {
 
     /**
      * GetRevisionId method returns the article's revision id value according to the associated key.
+     *
      * @return the revision id.
      */
     public long getRevisionId() {
@@ -76,6 +81,7 @@ public class WikiInputValue implements Writable {
 
     /**
      * SetRevisionId method sets the article's revision id value according to the associated key.
+     *
      * @param revisionId long value
      */
     public void setRevisionId(long revisionId) {
@@ -83,8 +89,9 @@ public class WikiInputValue implements Writable {
     }
 
     /**
-     * GetOutlinksNumber method returns the number of elements in the out-links list according to the 
+     * GetOutlinksNumber method returns the number of elements in the out-links list according to the
      * associated key.
+     *
      * @return the number of out-links
      */
     public int getOutlinksNumber() {
@@ -92,8 +99,9 @@ public class WikiInputValue implements Writable {
     }
 
     /**
-     * SetOutlinksNumber method sets the number of elements in the out-links list according to the 
+     * SetOutlinksNumber method sets the number of elements in the out-links list according to the
      * associated key.
+     *
      * @param outlinksNumber integer value.
      */
     public void setOutlinksNumber(int outlinksNumber) {
@@ -102,6 +110,7 @@ public class WikiInputValue implements Writable {
 
     /**
      * GetOutlinks method returns the elements in the out-links list according to the associated key.
+     *
      * @return the string representation of the elements in the out-links list.
      */
     public String getOutlinks() {
@@ -110,6 +119,7 @@ public class WikiInputValue implements Writable {
 
     /**
      * SetOutlinks method sets the elements in the out-links list according to the associated key.
+     *
      * @param out-links string list.
      */
     public void setOutlinks(String outlinks) {

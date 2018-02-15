@@ -11,22 +11,24 @@ import java.io.IOException;
 
 /**
  * Writable class that defines the output values for the PageRank's Reducer process, and the input values
- * for the Mapping process (PageRank's iterative processing) 
+ * for the Mapping process (PageRank's iterative processing)
+ *
  * @author 2338066f ANTONIO FEREGRINO BOLANOS
  * @author 2338067g HOMERO GARCIA MERINO
  */
 public class WikiInOutPageRankValue implements Writable {
-	//Page rank
+    //Page rank
     private FloatWritable pageRank;
     //Out-links number (list count)
     private IntWritable outlinksNumber;
     //Out-links list (by article name)
     private Text outlinks;
-    
+
     /**
      * ReadFields method for deserializing DataInput fields.
+     *
      * @param in contains PageRank's attributes required for calculation.
-     * @throws IOException if deserializable input data can not be read. 
+     * @throws IOException if deserializable input data can not be read.
      */
     @Override
     public void readFields(DataInput in) throws IOException {
@@ -34,9 +36,10 @@ public class WikiInOutPageRankValue implements Writable {
         outlinksNumber.readFields(in);
         outlinks.readFields(in);
     }
-    
+
     /**
      * Write method for serializing DataOutput fields.
+     *
      * @param out stores processed PageRank's attributes required for calculation.
      * @throws IOException if serializable output data can not be written.
      */
@@ -46,10 +49,11 @@ public class WikiInOutPageRankValue implements Writable {
         outlinksNumber.write(out);
         outlinks.write(out);
     }
-    
+
     /**
-     * String representation for WikiInOutPageRankValue class: "Page rank" + | delimiter + "out-links 
+     * String representation for WikiInOutPageRankValue class: "Page rank" + | delimiter + "out-links
      * number of elements" + | delimiter + "out-links elements list".
+     *
      * @return the string description.
      */
     @Override
@@ -59,6 +63,7 @@ public class WikiInOutPageRankValue implements Writable {
 
     /**
      * GetPageRank method returns the page rank value according to the associated key.
+     *
      * @return the page rank.
      */
     public float getPageRank() {
@@ -67,6 +72,7 @@ public class WikiInOutPageRankValue implements Writable {
 
     /**
      * SetPageRank method sets the page rank value according to the associated key.
+     *
      * @param pageRank float value.
      */
     public void setPageRank(float pageRank) {
@@ -74,8 +80,9 @@ public class WikiInOutPageRankValue implements Writable {
     }
 
     /**
-     * GetOutlinksNumber method returns the number of elements in the out-links list according to the 
+     * GetOutlinksNumber method returns the number of elements in the out-links list according to the
      * associated key.
+     *
      * @return the number of out-links
      */
     public int getOutlinksNumber() {
@@ -83,8 +90,9 @@ public class WikiInOutPageRankValue implements Writable {
     }
 
     /**
-     * SetOutlinksNumber method sets the number of elements in the out-links list according to the 
+     * SetOutlinksNumber method sets the number of elements in the out-links list according to the
      * associated key.
+     *
      * @param outlinksNumber integer value.
      */
     public void setOutlinksNumber(int outlinksNumber) {
@@ -93,6 +101,7 @@ public class WikiInOutPageRankValue implements Writable {
 
     /**
      * GetOutlinks method returns the elements in the out-links list according to the associated key.
+     *
      * @return the string representation of the elements in the out-links list.
      */
     public String getOutlinks() {
@@ -101,6 +110,7 @@ public class WikiInOutPageRankValue implements Writable {
 
     /**
      * SetOutlinks method sets the elements in the out-links list according to the associated key.
+     *
      * @param out-links string list.
      */
     public void setOutlinks(String outlinks) {
