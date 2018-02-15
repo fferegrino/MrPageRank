@@ -10,13 +10,14 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 /**
- * Writable class that defines the value for linking the Mapping and Reducer processes 
+ * Writable class that defines the value for linking the Mapping and Reducer processes
  * for the PageRank's calculation.
+ *
  * @author 2338066f ANTONIO FEREGRINO BOLANOS
  * @author 2338067g HOMERO GARCIA MERINO
  */
 public class WikiIntermediatePageRankValue implements Writable {
-	//Page rank
+    //Page rank
     private FloatWritable pageRank = new FloatWritable();
     //Out-links number (list count) from referencing page
     private IntWritable parentOutlinksNumber = new IntWritable();
@@ -27,8 +28,9 @@ public class WikiIntermediatePageRankValue implements Writable {
 
     /**
      * ReadFields method for deserializing DataInput fields.
+     *
      * @param in contains PageRank's attributes required for calculation.
-     * @throws IOException if deserializable input data can not be read. 
+     * @throws IOException if deserializable input data can not be read.
      */
     @Override
     public void readFields(DataInput in) throws IOException {
@@ -40,6 +42,7 @@ public class WikiIntermediatePageRankValue implements Writable {
 
     /**
      * Write method for serializing DataOutput fields.
+     *
      * @param out stores processed PageRank's attributes required for calculation.
      * @throws IOException if serializable output data can not be written.
      */
@@ -53,6 +56,7 @@ public class WikiIntermediatePageRankValue implements Writable {
 
     /**
      * GetPageRank method returns the page rank value according to the associated key.
+     *
      * @return the page rank.
      */
     public float getPageRank() {
@@ -61,6 +65,7 @@ public class WikiIntermediatePageRankValue implements Writable {
 
     /**
      * SetPageRank method sets the page rank value according to the associated key.
+     *
      * @param pageRank float value.
      */
     public void setPageRank(float pageRank) {
@@ -68,8 +73,9 @@ public class WikiIntermediatePageRankValue implements Writable {
     }
 
     /**
-     * GetParentOutlinksNumber method returns the number of elements in the out-links list for the 
+     * GetParentOutlinksNumber method returns the number of elements in the out-links list for the
      * referencing page (parent) according to the associated key.
+     *
      * @return the referencing page's number of out-links
      */
     public int getParentOutlinksNumber() {
@@ -77,8 +83,9 @@ public class WikiIntermediatePageRankValue implements Writable {
     }
 
     /**
-     * SetParentOutlinksNumber method sets the number of elements in the out-links list for the 
+     * SetParentOutlinksNumber method sets the number of elements in the out-links list for the
      * referencing page (parent) according to the associated key.
+     *
      * @param parentOutlinksNumber integer value.
      */
     public void setParentOutlinksNumber(int parentOutlinksNumber) {
@@ -86,8 +93,9 @@ public class WikiIntermediatePageRankValue implements Writable {
     }
 
     /**
-     * GetParent method returns the article's name for the referencing page (parent) according 
+     * GetParent method returns the article's name for the referencing page (parent) according
      * to the associated key.
+     *
      * @return the string article's name
      */
     public String getParent() {
@@ -95,8 +103,9 @@ public class WikiIntermediatePageRankValue implements Writable {
     }
 
     /**
-     * SetParent method sets the article's name for the referencing page (parent) according 
+     * SetParent method sets the article's name for the referencing page (parent) according
      * to the associated key.
+     *
      * @param parent string name
      */
     public void setParent(String parent) {
@@ -105,6 +114,7 @@ public class WikiIntermediatePageRankValue implements Writable {
 
     /**
      * GetOutlinks method returns the elements in the out-links list according to the associated key.
+     *
      * @return the string representation of the elements in the out-links list.
      */
     public String getOutlinks() {
@@ -113,6 +123,7 @@ public class WikiIntermediatePageRankValue implements Writable {
 
     /**
      * SetOutlinks method sets the elements in the out-links list according to the associated key.
+     *
      * @param out-links string list.
      */
     public void setOutlinks(String outlinks) {

@@ -22,26 +22,30 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+
 /**
  * Main class for the PageRank's calculation of a given set using Apache Hadoop's ecosystem.
- * The PageRank is an algorithm used to establish web-pages relevance or importance within 
+ * The PageRank is an algorithm used to establish web-pages relevance or importance within
  * a web-site or the Internet.
+ *
  * @author 2338066f ANTONIO FEREGRINO BOLANOS
  * @author 2338067g HOMERO GARCIA MERINO
  */
 public class WikiPageRank extends Configured implements Tool {
 
     /**
-     * Main method responsible for orchestrating and managing the PageRank's calculation 
+     * Main method responsible for orchestrating and managing the PageRank's calculation
      * scheduling Hadoop's jobs in N iterations as requested by the client.
+     *
      * @param args is a string array that contains the full set of command-line parameters.
      */
     public static void main(String[] args) throws Exception {
         System.exit(ToolRunner.run(new WikiPageRank(), args));
     }
-    
+
     /**
      * Run method responsible for scheduling jobs in Hadoop's cluster.
+     *
      * @param args is a string array that contains the full set of command-line parameters.
      * @param[0] input file path, e.g. Wikipedia edit history file.
      * @param[1] output directory path.
@@ -49,18 +53,18 @@ public class WikiPageRank extends Configured implements Tool {
      */
     @Override
     public int run(String[] args) throws Exception {
-    	// Obtain configuration details from Hadoop's cluster
+        // Obtain configuration details from Hadoop's cluster
         Configuration conf = getConf();
         conf.set("mapreduce.map.java.opts", "-Xmx620M");
         // Setting a lower split size to use more containers in the "data gathering and cleansing" phase
         //final long DEFAULT_SPLIT_SIZE = 128 * 1024 * 1024;
         // Lower split size by factor of 8, considering cluster's block size is 128M
         //conf.setLong(FileInputFormat.SPLIT_MAXSIZE, conf.getLong(FileInputFormat.SPLIT_MAXSIZE, DEFAULT_SPLIT_SIZE) / 8);
-        
+
         // Enable Mapping output compression
         conf.set("mapreduce.map.output.compress", "true");
         conf.set("mapreduce.map.output.compress.codec", "org.apache.hadoop.io.compress.SnappyCodec");
-        
+
         // Obtain filesystem configuration details from Hadoop's cluster
         FileSystem fsys = FileSystem.get(conf);
         // Define input file path
@@ -95,7 +99,7 @@ public class WikiPageRank extends Configured implements Tool {
         // Reducer configuration for "data gathering and cleansing" job
         cleaningJob.setCombinerClass(ArticleCombiner.class);
         cleaningJob.setReducerClass(ArticleReducer.class);
-        
+
         // Wait for completion
         cleaningJob.waitForCompletion(true);
 
@@ -119,7 +123,7 @@ public class WikiPageRank extends Configured implements Tool {
 
             // Reducer configuration for current "PageRank's calculation" job
             pageRankJob.setReducerClass(PageRankReducer.class);
-            
+
             // Conditional section that defines the current job output's format based on the loop's number
             if (currentLoop == numLoops) { // Last iteration, defines the output format as "article_name page-rank"
                 pageRankJob.setOutputFormatClass(PageRankOutputFormat.class);
