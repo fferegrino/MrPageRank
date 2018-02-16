@@ -18,7 +18,7 @@ Assumptions:
  - Only the latest revision records are considered. This means that the bigger revision number for a specific Article is processed. The rest of the historical records are discarded.
  - The out-links list contains only unique keys (Articles). This means that a "Referenced" article page can not be voted twice or more times by a single "Parent" Article page.
  - An article can reference itself. The same rule about "multiple" voting applies for these cases. 
- - There can be Articles with no references to them. These articles recieve a default PageRank of 0.15
+ - There can be Articles with no references to them. These articles receive a default PageRank of 0.15
  
 For more details, check the following section!
 
@@ -54,7 +54,7 @@ Determines which revision should be processed. According to our assumptions, onl
 
  - a 'FloatWritable' with the current PageRank's score,
  - an 'IntWritable' with the number of out-links,
- - a 'Text' that contains the actual outlinks for the given key
+ - a 'Text' that contains the actual out-links for the given key
 
 The resulting key-value pair output is:  
 '''
@@ -78,10 +78,10 @@ As explained before, our logic states that the output for the previous loop job 
  - The 'number_of_outlinks' for the 'article_title',
  - The 'out-links' list separated by '|'
 
-For each 'out-link' the mapper produces a key-value pair with a 'Text' type key that contains the "Referenced" article ('outlink'), and a custom value type 'WikiIntermediatePageRankValue', defined as:
+For each 'out-link' the mapper produces a key-value pair with a 'Text' type key that contains the "Referenced" article ('out-link'), and a custom value type 'WikiIntermediatePageRankValue', defined as:
 
  - a 'FloatWritable' with the PageRank for the Parent's 'article_title'
- - an 'IntWritable' with the nomber of out-links,
+ - an 'IntWritable' with the number of out-links,
  - a 'Text' for the Parent's 'article_title'. The "Parent" article is defined as the article that has reference to other articles. 
 
 Finally, and this is a trick we came up with, once all the values for the out-links have been written, a final key-value pair is created with the current state of the "Parent" article. This record defines the 'article_title' as the key, and a 'WikiIntermediatePageRankValue' with its "parent" set to itself, as well as an additional 'Text' property named 'outlinks' that contains the list of original outlinks (current state). This value is used to rebuild the original input of the mapper and execute a new iteration of the PageRank's job.
@@ -120,5 +120,5 @@ Assumptions:
  - Only the latest revision records are considered. This means that the bigger revision number for a specific Article is processed. The rest of the historical records are discarded.
  - The out-links list contains only unique keys (Articles). This means that a "Referenced" article page can not be voted twice or more times by a single "Parent" Article page.
  - An article can reference itself. The same rule about "multiple" voting applies for these cases. 
- - There can be Articles with no references to them. These articles recieve a default PageRank of 0.15
+ - There can be Articles with no references to them. These articles receive a default PageRank of 0.15
  
