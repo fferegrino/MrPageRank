@@ -1,120 +1,124 @@
 tl;dr version  
 
-After having succesfully compiled the project and generated the file "wiki/target/uog-bigdata-0.0.1-SNAPSHOT.jar" it is necessary to point the HADOOP_CLASSPATH to it. After that, it is just a matter of running the job using "mapreduce.WikiPageRank" as the classnamme for the job.  
+After succesfully compiling the project and generating the JAR file "wiki/target/uog-bigdata-0.0.1-SNAPSHOT.jar" it is required to assign it to the HADOOP_CLASSPATH variable. After that, run the job with "mapreduce.WikiPageRank" as the classnamme for the job.  
 
 Input-Ouptut key-value pairs  
 
-  First MapReduce job:
+  First MapReduce job ("data gathering and cleansing"):
     Input for mapper:   Text as key, Text as value
     Input for reducer:  Text as key, WikiInputValue (custom type)
     Output of reducer:  Text as key, WikiInOutPageRankValue (custom type)
 
-  Second MapReduce job:
+  Second MapReduce job ("PageRank's calculation"):
     Input for mapper:   LongWritable as key, Text as value
     Input for reducer:  Text as key, WikiIntermediatePageRankValue (custom type)
     Output of reducer:  Text as key, WikiInOutPageRankValue (custom type)
   
-Assumptions we are making:
- - We are only considering the latest revision found on the revisions dataset
- - We are considering just one link between two pages and discarding the rest
+Assumptions:
+ - Only the latest revision records are considered. This means that the bigger revision number for a specific Article is processed. The rest of the historical records are discarded.
+ - The out-links list contains only unique keys (Articles). This means that a "Referenced" article page can not be voted twice or more times by a single "Parent" Article page.
+ - An article can reference itself. The same rule about "multiple" voting applies for these cases. 
+ - There can be Articles with no references to them. These articles recieve a default PageRank of 0.15
  
- Please, look for more details on the following pharagraphs!
+For more details, check the following section!
 
 Long version (uses markdown)
 
 # Mister Mighty PageRank 
 
-Our PageRank implementation is comprised of two MapReduce jobs. One is used to preprocess the data coming from the input files, and the other is where the PageRank calculation takes place.
+Our PageRank implementation is comprised by two MapReduce jobs. The first one pre-processes the data retrieved from the input files (data source), and the second performs the PageRank calculation.
 
-## Cleaning stage
+## Gathering and cleansing stage
 
-We will begin by describing the workings of the first job, which we will call "cleaning job/stage" from now on.
+The first stage/job is called "data gathering and cleansing".
 
-The purpose of the cleaning job is to take the data from the file and removing all the non-important information and leave the data ready for the PageRank calculation. The input key for the first mapper is of type `Text`, and it only contains the `article_title`, its associated value is simple `Text` type that contains the values read from the `MAIN`  
+The purpose of this job is to gather the data from the source file and remove not required/important information, formatting the output for the PageRank calculation. The input type's key for the first mapper is 'Text', and contains the 'article_title'. Its value's type is 'Text' and contains the contents read from the 'MAIN' tag.  
 
 ### Custom InputFormat. 
 
-To read the file we created a couple of extra classes (`WikiInputFormat` and `WikiMultiRecordReader`) that allowed us to read the file in chunks of 14 lines, rather than going one by one as we need the information for a single revision to stay together.  
+For the data gathering process we created specific classes ('WikiInputFormat' and 'WikiMultiRecordReader') for reading the file in chunks of 14 lines(record terminator included), rather than reading one by one as we need the data for a single revision to stay together.  
 
 ### Mapper
 
-The mapper takes care of parsing the list of values passed in the value, that is, getting the corresponding `rev_id` as well as splitting the list of outlinks (using the following regular expression "\s") to count them and then join them by a single blank space. The output of this mapper is a custom type named `WikiInputValue`, this custom type contains:
+The mapper parses the list of values obtained from the value variable, getting the corresponding 'rev_id' and splitting the list of outlinks (using the regular expression "\s") to count them, and joining them by a single blank space. The output of this mapper is a custom type named 'WikiInputValue', defined as:
 
- - a `Text` field where the links going out of the article represented by the key are stored,  
- - a `LongWritable` where the `rev_id` property is stored,
- - an `IntWritable` where the number of outlinks is stored  
+ - a 'Text' field with the out-links of the article,  
+ - a 'LongWritable' with the 'rev_id',
+ - an 'IntWritable' with the number of out-links
 
-This value is identified by a `Text` key, the `article_title`.
+This record value is identified by a 'Text' key ('article_title').
 
 ### Reducer
 
-The job of the reducer is to determine which revision should we take into account, in this case, we decided to use only the latest revision of each article. To select it, in the reducer we iterate over the list of values selecting the revision with the greatest `rev_id`. The output of this reducer is a key of type `Text`, and a value of type `WikiInOutPageRankValue`, such type is composed of:
+Determines which revision should be processed. According to our assumptions, only the latest revision for each article should be processed. For selection, the reducer iterates over a list of values picking the revision with the greatest 'rev_id'. The outputs are: a 'Text' key and a 'WikiInOutPageRankValue' value, defined as:
 
- - a `FloatWritable` that contains the specified PageRank score for the associated key
- - an `IntWritable` that specifies the number of outlinks the key has, and,
- - a `Text` that contains the actual outlinks for the given key
+ - a 'FloatWritable' with the current PageRank's score,
+ - an 'IntWritable' with the number of out-links,
+ - a 'Text' that contains the actual outlinks for the given key
 
-The goal of using this set of key-values is to have an output like the following:  
-
-```
+The resulting key-value pair output is:  
+'''
 article_title1    page_rank1|number_of_outlinks1|outlinks1
 article_title2    page_rank2|number_of_outlinks2|outlinks2
-```
+'''
 
-Where the  `page_rank` value is set to `1.0` for all pages.
+The init 'page_rank' value is '1.0' for all articles.
 
 ### Combiner
 
-Between the mapper and the reducer, we also introduced a combiner that performs the same job of the reducer, with the intention to decrease the amount of data that needs to be processed by the reducers.
+We created a combiner process for performing the reducer's logic, in order to reduce the number of records transferred through the network to the reducer's servers.
 
 ## Page Rank calculation stage 
 
 ### Mapper
 
-As we mentioned before, the output for the previous job is also the input for the calculation stage, for this job no custom input classes were needed as we can simply rely on the default  line-by-line reading interface that is provided by the MapReduce API. The key for the mapper is a `LongWritable` type that we are not using, and a `Text` that contains a single line from the file obtained form cleaning job execution. This mapper takes this `Text` value and splits it to obtain four different values:
+As explained before, our logic states that the output for the previous loop job is the input for the next iteration. For this stage no custom input classes were needed as it relies on the default line-by-line reading interface provided by MapReduce's API. The Mapper's key is a 'LongWritable' type, and a 'Text' value. The mapper reads the 'Text' value and splits it to obtain:
+ - The 'article_title',
+ - The 'page_rank' score for the 'article_title',
+ - The 'number_of_outlinks' for the 'article_title',
+ - The 'out-links' list separated by '|'
 
- - `article_title`,
- - `page_rank` the calculated PageRank score for the page denoted by `article_title`,
- - `number_of_outlinks` this one is pretty self-explanatory,
- - `outlinks` a list of outlines separated by a `|`
+For each 'out-link' the mapper produces a key-value pair with a 'Text' type key that contains the "Referenced" article ('outlink'), and a custom value type 'WikiIntermediatePageRankValue', defined as:
 
-Then, for each `outlink` in the list of `outlinks` the mapper emits a key-value pair where the key is a `Text` type that contains the value of `outlink`, with a value of type `WikiIntermediatePageRankValue`. This custom value contains:
+ - a 'FloatWritable' with the PageRank for the Parent's 'article_title'
+ - an 'IntWritable' with the nomber of out-links,
+ - a 'Text' for the Parent's 'article_title'. The "Parent" article is defined as the article that has reference to other articles. 
 
- - a `FloatWritable` that specifies the page rank assigned to the page specified by `article_title`
- - an `IntWritable` that specifies the number of outlines that the `article_title` has
- - a `Text` named `parent` that contains the "parent" of `outlink`, here we define the parent as the article that points to it, in other words `article_title`. 
-
-Finally, and this is a trick we came up with, once all the values for the outlines have been emitted,  a final key-value pair is emitted, this one has `article_title` as the key, and a `WikiIntermediatePageRankValue` with his "parent" set to itself, as well as an additional property of type `Text` named `outlinks` that will contain the list of original outlinks. This last value will help us to reconstruct the original input of the mapper to re-use the output of this job as its input.
+Finally, and this is a trick we came up with, once all the values for the out-links have been written, a final key-value pair is created with the current state of the "Parent" article. This record defines the 'article_title' as the key, and a 'WikiIntermediatePageRankValue' with its "parent" set to itself, as well as an additional 'Text' property named 'outlinks' that contains the list of original outlinks (current state). This value is used to rebuild the original input of the mapper and execute a new iteration of the PageRank's job.
 
 ### Reducer
 
-As specified by the mapper, the reducer takes a list of `WikiIntermediatePageRankValue`, this will allow us to calculate the PageRank of a given page over a single for loop where we consider only those values that meet the following conditions:
+As explained in the Mapper job, the reducer takes a list of 'WikiIntermediatePageRankValue' values, for the PageRank's calculation of a given page over a single "For" loop where only the records that meet the following criteria are processed:
 
- - Have the field `parent` to other value different than the key and,
- - have no outlinks specified in the field `outlinks` 
+ - The field 'parent' value is different to the key and,
+ - the 'out-links' field have no out-links 
 
-As a value that does not meet these conditions is a value that contains the information (outlinks) of the article and therefore should not be considered for the calculation.
+When a record's value does not meet these conditions it means it contains the out-links list of the article, it is a "Parent" article and should not be considered by the calculation process.
 
-With this last value, and once we have calculated the PageRank, we can output a single `WikiInOutPageRankValue` with all the information for a given key, when printed to the output file, it  looks like this:
+After the PageRank's calculation, a single 'WikiInOutPageRankValue' output is generated with all the information related to the given key, like:
 
-```
+'''
 article_title1    page_rank1|number_of_outlinks1|outlinks1
-```
+'''
 
-Which, if you recall, is the input expected for the PageRank mapper.
+This is the input expected for the PageRank's Mapper.
 
-### Producing the right output
+### Producing the required output
 
-So, if our PageRank MapReduce job is always feeding itself, how come it can produce the final output that the user expects?
+If the PageRank's MapReduce job is always feeding itself, how can it produce a final output as expected by the user?
 
-The answer can be found on the `main` method, where the jobs are scheduled. In there, within a `for` loop we create one job after the other, coordinating the creation and deletion of the input and output files. But also, when we realize that the algorithm is about to run the last iteration, we switch from the default `TextOutputFormat` to a custom `PageRankOutputFormat` that is in charge of writing the specified output:
+The answer can be set on the 'main' method, where the jobs are scheduled. Within the loop section we create one job after another for each iteration, sincronizing the creation and deletion of input and output files. It can be identified the execution of the last iteration, and change the default 'TextOutputFormat' to a custom 'PageRankOutputFormat' used to write the required output file:
 
-```
+'''
 article_title1 score1
 article_title2 score2
-```
+'''
 
-## Assumptions we are making 
+## Assumptions made by this implementation
 
- - We are only considering the latest revision found on the revisions data set  
- - We are considering just one link between two pages  
+Assumptions:
+ - Only the latest revision records are considered. This means that the bigger revision number for a specific Article is processed. The rest of the historical records are discarded.
+ - The out-links list contains only unique keys (Articles). This means that a "Referenced" article page can not be voted twice or more times by a single "Parent" Article page.
+ - An article can reference itself. The same rule about "multiple" voting applies for these cases. 
+ - There can be Articles with no references to them. These articles recieve a default PageRank of 0.15
+ 
