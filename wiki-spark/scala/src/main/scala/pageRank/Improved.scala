@@ -38,12 +38,13 @@ object Improved {
     val conf = new SparkConf().setAppName("Mighty-WikiPageRank_II")
     // obtain Spark context from configuration object
     val sc = new SparkContext(conf)
+    sc.setJobDescription("Mighty-WikiPageRank_II")
     
-    // Hadoop configuration - clean environment
 		// Obtain filesystem configuration details from Hadoop's cluster
 		val fsys = FileSystem.get(sc.hadoopConfiguration);
     // Delete recursively results - output directory if exists  
     fsys.delete(outputFile, true)
+    
     // Set input format record delimiter for Wikipedia's HDFS files
     sc.hadoopConfiguration.set("textinputformat.record.delimiter", "\n\n")  
 
@@ -84,13 +85,12 @@ object Improved {
 
         val cleanLinks = outlinks.split("\\s+").toSet - "" + articleId
         new WikipediaRevision(articleId, latestRevisionId, cleanLinks.mkString(" "))
-      })
-      .map(t => t._2)
+      }).values
 
     // Pairs in the form: (Parent, outlink)
     val links: RDD[(String, Array[String])] = singleRevisions
       .keyBy(_.articleId)
-      .mapValues(rev => rev.outlinks.split("\\s")).cache()
+      .mapValues(rev => rev.outlinks.split("\\s"))
 
     // Pairs in the form: (Parent, PageRank score)
     var ranks: RDD[(String, Double)] = links.keyBy(_._1).map(rev => (rev._1, 1.0))
@@ -98,11 +98,11 @@ object Improved {
     for (i <- 1 to iterations) {
 
       // Pairs in the form: (Children, PageRank contribution from parent)
-      val contribs: RDD[(String, Double)] = links.fullOuterJoin(ranks)
+      val contribs: RDD[(String, Double)] = links.join(ranks)
         .flatMap((v) => {
           val parent = v._1
-          val outlinks = v._2._1.getOrElse(Array[String]())
-          val pr = v._2._2.getOrElse(1.0)
+          val outlinks = v._2._1
+          val pr = v._2._2
 
           var res: List[Tuple2[String, Double]] = List[Tuple2[String, Double]]()
           var urlCount = outlinks.length - 1
@@ -119,9 +119,9 @@ object Improved {
         })
       ranks = contribs.reduceByKey((a, b) => a + b).mapValues(v => 0.15 + v * 0.85);
     }
-
-    //ranks.repartition(40).sortBy(f=>f._2, false).map(prs => prs._1 + " " + prs._2).saveAsTextFile(args(2))
-    ranks.map(prs => prs._1 + " " + prs._2).saveAsTextFile(args(2))
+    
+    ranks.sortBy(f=>f._2, false,40).map(prs => prs._1+ " " + prs._2).saveAsTextFile(args(1))
+    //ranks.map(prs => prs._1 + " " + prs._2).saveAsTextFile(args(1))
     
     // Close the SparkContextobject, releasing its resources.
     sc.stop()
