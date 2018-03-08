@@ -50,25 +50,13 @@ object Improved {
 
     // All revisions, filtered initially by date
     val revisions: RDD[WikipediaRevision] = sc.newAPIHadoopFile(inputFile, classOf[TextInputFormat], classOf[LongWritable], classOf[Text])
-      .map(v => v._2.toString())
-      .map(record => {
-        val lines = record.split("\n")
-        val revision = lines(0).split(" ")
-        val revisionId = revision(2).trim().toLong
-        val articleId = revision(3).trim()
-        val revisionTime = ISO8601.toTimeMS(revision(4).trim())
-        val mainArray = lines(3).split(" ", 2)
-        var outlinks: String = null
-        if (mainArray.length == 2) {
-          outlinks = mainArray(1)
-        }
-        new WikipediaRevision(articleId, revisionId, outlinks, revisionTime)
-      }).filter(r => r.revisionTime <= timeLimit)
+      .values
+      .map(textToRevision)
+      .filter(r => r.revisionTime <= timeLimit)
 
     // Second, and final filtering step
     val singleRevisions: RDD[WikipediaRevision] = revisions.groupBy(revision => revision.articleId)
       .mapValues(revisions => {
-        var latestRevisionId: Long = 0
         var articleId = ""
         var outlinks = ""
         var timeDifference = Long.MaxValue
@@ -78,42 +66,34 @@ object Improved {
           if (difference < timeDifference) {
             timeDifference = difference
             articleId = revision.articleId
-            latestRevisionId = revision.revisionId
             outlinks = if (revision.outlinks == null) "" else revision.outlinks
           }
         }
 
         val cleanLinks = outlinks.split("\\s+").toSet - "" + articleId
-        new WikipediaRevision(articleId, latestRevisionId, cleanLinks.mkString(" "))
+        new WikipediaRevision(articleId, 0, cleanLinks.mkString(" "))
       }).values
 
     // Pairs in the form: (Parent, outlink)
     val links: RDD[(String, Array[String])] = singleRevisions
-      .keyBy(_.articleId)
-      .mapValues(rev => rev.outlinks.split("\\s"))
+      .map(rev => (rev.articleId, rev.outlinks.split("\\s"))).cache()
 
     // Pairs in the form: (Parent, PageRank score)
-    var ranks: RDD[(String, Double)] = links.keyBy(_._1).map(rev => (rev._1, 1.0))
+    var ranks: RDD[(String, Double)] = links.mapValues(rev => 1.0)
 
     for (i <- 1 to iterations) {
-
       // Pairs in the form: (Children, PageRank contribution from parent)
       val contribs: RDD[(String, Double)] = links.join(ranks)
-        .flatMap((v) => {
-          val parent = v._1
-          val outlinks = v._2._1
-          val pr = v._2._2
+        .flatMap((values) => {
+          val(parentArticle, info) = values
+          val(outlinks, pr) = info
 
           var res: List[Tuple2[String, Double]] = List[Tuple2[String, Double]]()
           var urlCount = outlinks.length - 1
-          for (s <- outlinks) {
-            if (parent != s) {
-              val tuple = new Tuple2[String, Double](s, pr / urlCount)
-              res = res.+:(tuple)
-            } else { // No contribution!
-              val t1 = new Tuple2(s, 0.0)
-              res = res.+:(t1)
-            }
+          for (child <- outlinks) {
+            val contribution = if (child == parentArticle) 0 else pr / urlCount
+            val tuple = new Tuple2[String, Double](child, contribution)
+            res = res.+:(tuple)
           }
           res
         })
@@ -160,5 +140,19 @@ object Improved {
     } catch {
       case e: Exception => now.getTime
     }
+  }
+  
+  def textToRevision(text: Text) : WikipediaRevision  = {
+        val lines = text.toString().split("\n")
+        val revision = lines(0).split(" ")
+        val revisionId = revision(2).trim().toLong
+        val articleId = revision(3).trim()
+        val revisionTime = ISO8601.toTimeMS(revision(4).trim())
+        val mainArray = lines(3).split(" ", 2)
+        var outlinks: String = null
+        if (mainArray.length == 2) {
+          outlinks = mainArray(1)
+        }
+        return new WikipediaRevision(articleId, revisionId, outlinks, revisionTime)
   }
 }
