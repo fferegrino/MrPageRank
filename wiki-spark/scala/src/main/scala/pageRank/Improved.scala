@@ -80,6 +80,8 @@ object Improved {
 
     // Pairs in the form: (Parent, PageRank score)
     var ranks: RDD[(String, Double)] = links.mapValues(rev => 1.0)
+    // Number of partitions asigned to ranks
+    var ranks_par = ranks.partitions.size
 
     for (i <- 1 to iterations) {
       // Pairs in the form: (Children, PageRank contribution from parent)
@@ -97,12 +99,13 @@ object Improved {
           }
           res
         })
-      ranks = contribs.reduceByKey((a, b) => a + b).mapValues(v => 0.15 + v * 0.85);
+      ranks = contribs.reduceByKey((a, b) => a + b).mapValues(v => 0.15 + v * 0.85).repartition(ranks_par*3).setName("Rankings_RDD")
     }
     
-    ranks.sortBy(f=>f._2, false,40).map(prs => prs._1+ " " + prs._2).saveAsTextFile(args(1))
+    ranks.sortBy(f=>f._2, false,ranks_par*2).map(prs => prs._1+ " " + prs._2).setName("Sorting_RDD").saveAsTextFile(args(1))
+    //ranks.sortBy(f=>f._2, false,40).map(prs => prs._1+ " " + prs._2).saveAsTextFile(args(1))
     //ranks.map(prs => prs._1 + " " + prs._2).saveAsTextFile(args(1))
-    
+
     // Close the SparkContextobject, releasing its resources.
     sc.stop()
   }
