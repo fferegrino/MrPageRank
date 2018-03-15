@@ -1,6 +1,6 @@
 ## Solution outline
 
-## Why Scala?
+### Why Scala?
 We choose Scala because we wanted to experiment and learn a language that is being highly demanded by companies hiring Big Data professionals. 
 
 ### Data gathering
